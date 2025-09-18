@@ -1,0 +1,144 @@
+Create Bounty Requests
+For EACH issue found, create a bounty request using this exact format:
+
+BOUNTY REQUEST #[NUMBER]
+🎯 USER STORY
+"As a [user type], I want [specific functionality] so that [user benefit/goal]"
+✅ ACCEPTANCE CRITERIA
+I'll accept this fix only if:
+
+ Criterion 1 (specific, testable)
+ Criterion 2 (specific, testable)
+ Criterion 3 (specific, testable)
+
+🔧 PROBLEM CODE/FUNCTION
+// Isolated broken code or function stub
+// Include only the specific problematic section
+// Add comments explaining what's wrong
+🧪 TESTING REQUIREMENTS
+
+Test Command: [specific command to run]
+Expected Output: [exact expected result]
+Current Output: [what currently happens - error/wrong behavior]
+
+💰 PRICING: $[5-25 based on guidelines]
+
+Under 50 lines bug fix: $5-$15
+1 Feature/Function: $20
+Test Suite: $10
+Performance/refactor: $25
+
+📋 SUBMISSION REQUIREMENTS
+
+Submit working .py/.js file
+Include test results screenshot
+Provide clear documentation
+Optional: Loom video explanation
+Agree to transfer all code rights for payment
+
+🔐 IP & PAYMENT TERMS
+"You agree to give up all rights to this code in exchange for payment upon successful completion."
+
+Step 3: Prioritization Matrix
+Rank each bounty by:
+
+Critical Path (blocks user onboarding)
+User Impact (high/medium/low)
+Complexity (simple/moderate/complex)
+Dependencies (blocks other features)
+
+Create three categories:
+
+🚨 URGENT: Must fix before any users can use the app
+⚡ HIGH: Significantly impacts user experience
+📈 ENHANCEMENT: Nice to have for better UX
+
+Step 4: Output Format
+Provide your analysis in this structure:
+APP OVERVIEW
+
+App Name: [Name]
+Primary Purpose: [1-2 sentences]
+Target Users: [Who should use this]
+Current Status: [% complete estimate]
+
+CRITICAL ISSUES BLOCKING PRODUCTION
+[List 🚨 URGENT items with bounty requests]
+HIGH IMPACT ISSUES
+[List ⚡ HIGH items with bounty requests]
+ENHANCEMENT OPPORTUNITIES
+[List 📈 ENHANCEMENT items with bounty requests]
+IMPLEMENTATION ROADMAP
+
+Phase 1 (Production Ready): Fix all URGENT issues
+Phase 2 (User-Friendly): Address HIGH impact issues
+Phase 3 (Polished): Implement enhancements
+
+TOTAL BOUNTY BUDGET
+
+Critical Issues: $[amount]
+High Impact: $[amount]
+Enhancements: $[amount]
+TOTAL: $[amount]
+
+Quality Checklist
+Before submitting each bounty request, ensure:
+
+ User story is from actual user perspective
+ Acceptance criteria are objective and testable
+ Problem code is isolated and minimal
+ Testing requirements are specific and executable
+ Pricing follows the guidelines
+ IP terms are clearly stated
+
+Special Focus Areas
+Pay extra attention to:
+
+Authentication flows (login/signup/logout)
+Data validation (forms, inputs, API calls)
+Error handling (network failures, invalid inputs)
+Security (XSS, injection vulnerabilities)
+Performance (loading times, large datasets)
+Mobile experience (responsive design, touch interactions)
+Edge cases (empty states, extreme inputs)
+
+Example Bounty Request
+BOUNTY REQUEST #001
+🎯 USER STORY
+"As a new user, I want to sign up with my email and password so that I can create an account and access the app features"
+✅ ACCEPTANCE CRITERIA
+I'll accept this fix only if:
+
+ Valid email/password creates account and redirects to dashboard
+ Invalid email shows clear error message
+ Weak passwords are rejected with requirements shown
+ Duplicate emails show "account exists" message
+ Form validates in real-time as user types
+
+🔧 PROBLEM CODE/FUNCTION
+javascript// signup.js - Line 45-67
+async function handleSignup(email, password) {
+  // Currently missing validation
+  // No error handling
+  // Doesn't check for existing users
+  const user = await createUser(email, password);
+  // Missing redirect logic
+}
+🧪 TESTING REQUIREMENTS
+
+Test Command: Open signup page, try various email/password combinations
+Expected Output: Successful signup redirects to /dashboard, errors show appropriate messages
+Current Output: No validation, crashes on duplicate email, no feedback to user
+
+💰 PRICING: $20 (1 Feature/Function)
+📋 SUBMISSION REQUIREMENTS
+
+Submit working signup.js file
+Include test results screenshot showing all acceptance criteria passing
+Provide clear documentation of validation rules
+Optional: Loom video showing signup flow working
+
+🔐 IP & PAYMENT TERMS
+"You agree to give up all rights to this code in exchange for payment upon successful completion."
+
+Start your analysis now and be thorough - the goal is to make this app production-ready for real users!
