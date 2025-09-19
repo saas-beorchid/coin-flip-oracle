@@ -27,6 +27,7 @@ export default function Home() {
   const { toast } = useToast();
   const { user } = useUser();
   const [decisionContext, setDecisionContext] = useState("");
+  const [aiSuggestion, setAISuggestion] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Check for payment success in URL parameters
@@ -45,17 +46,17 @@ export default function Home() {
             title: "Payment Successful!",
             description: "Flipping your coin now...",
           });
-          
+
           // Perform the coin flip since payment was successful
           const result = await flipCoin();
-          
+
           // Save flip (with optional AI suggestion)
           try {
             const res = await apiRequest("POST", "/api/flip", {
               outcome: result,
               context: contextFromUrl || decisionContext.trim() || undefined,
               headsLabel: (coinSettings as any)?.headsLabel || "HEADS",
-              tailsLabel: (coinSettings as any)?.tailsLabel || "TAILS", 
+              tailsLabel: (coinSettings as any)?.tailsLabel || "TAILS",
               coinStyle: (coinSettings as any)?.coinStyle || "copper",
               userId: user.id,
             });
@@ -63,6 +64,7 @@ export default function Home() {
             const flipData = await res.json();
 
             if (flipData.aiSuggestion) {
+              setAISuggestion(flipData.aiSuggestion);
               setIsModalOpen(true);
             }
 
@@ -71,16 +73,17 @@ export default function Home() {
           } catch (error) {
             toast({
               title: "Flip Error",
-              description: "Payment successful but failed to save flip results.",
+              description:
+                "Payment successful but failed to save flip results.",
               variant: "destructive",
             });
           }
-          
+
           // Clean up URL
           window.history.replaceState(
             {},
             document.title,
-            window.location.pathname,
+            window.location.pathname
           );
         })
         .catch((error) => {
@@ -93,7 +96,7 @@ export default function Home() {
           window.history.replaceState(
             {},
             document.title,
-            window.location.pathname,
+            window.location.pathname
           );
         });
     } else if (paymentStatus === "cancelled") {
@@ -120,7 +123,7 @@ export default function Home() {
     queryFn: async () => {
       const res = await apiRequest(
         "GET",
-        `/api/check-payment?userId=${user?.id || "default"}`,
+        `/api/check-payment?userId=${user?.id || "default"}`
       );
       return res.json();
     },
@@ -144,9 +147,11 @@ export default function Home() {
   // Mutation: Create Stripe Checkout session
   const createCheckoutSession = useMutation({
     mutationFn: async () => {
-      const contextParam = decisionContext.trim() ? `&context=${encodeURIComponent(decisionContext.trim())}` : '';
+      const contextParam = decisionContext.trim()
+        ? `&context=${encodeURIComponent(decisionContext.trim())}`
+        : "";
       const res = await apiRequest("POST", "/api/create-checkout-session", {
-        amount: 100, // $1.00 in cents
+        amount: 0o0, // $1.00 in cents
         currency: "usd",
         success_url: `${window.location.origin}?session_id={CHECKOUT_SESSION_ID}&payment=success${contextParam}`,
         cancel_url: `${window.location.origin}?payment=cancelled`,
@@ -155,7 +160,6 @@ export default function Home() {
       return res.json();
     },
     onSuccess: async (data) => {
-      
       const stripe = await stripePromise;
       if (!stripe) {
         throw new Error("Stripe failed to initialize");
@@ -166,8 +170,7 @@ export default function Home() {
       const { error } = await stripe.redirectToCheckout({
         sessionId: data.sessionId,
       });
-      if (error)
-         {
+      if (error) {
         toast({
           title: "Payment Error",
           description:
@@ -256,8 +259,8 @@ export default function Home() {
               {createCheckoutSession.isPending
                 ? "Loading..."
                 : paymentStatus?.hasPaid
-                  ? "FLIP COIN"
-                  : "PAY TO FLIP"}
+                ? "FLIP COIN"
+                : "PAY TO FLIP"}
             </Button>
 
             {/* Decision Context */}
@@ -291,6 +294,7 @@ export default function Home() {
           outcome={outcome}
           headsLabel={headsLabel}
           tailsLabel={tailsLabel}
+          aiSuggestion={aiSuggestion}
           decisionContext={decisionContext}
         />
       </SignedIn>

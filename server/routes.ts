@@ -46,7 +46,11 @@ class Cache<T> {
   }
 }
 
-const statsCache = new Cache<{ headsCount: number; tailsCount: number; totalCount: number }>(30000);
+const statsCache = new Cache<{
+  headsCount: number;
+  tailsCount: number;
+  totalCount: number;
+}>(30000);
 const historyCache = new Cache<any[]>(10000);
 const settingsCache = new Cache<any>(600000);
 
@@ -60,7 +64,10 @@ const settingsSchema = z.object({
 export async function registerRoutes(app: Express): Promise<Server> {
   const addCacheHeaders = (res: Response, maxAge: number) => {
     res.setHeader("Cache-Control", `public, max-age=${maxAge}`);
-    res.setHeader("Expires", new Date(Date.now() + maxAge * 1000).toUTCString());
+    res.setHeader(
+      "Expires",
+      new Date(Date.now() + maxAge * 1000).toUTCString()
+    );
   };
 
   // ✅ Stripe webhook FIRST (before bodyParser.json)
@@ -73,7 +80,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const event = stripe.webhooks.constructEvent(
           req.body,
           sig,
-          process.env.STRIPE_WEBHOOK_SECRET!,
+          process.env.STRIPE_WEBHOOK_SECRET!
         );
         if (event.type === "checkout.session.completed") {
           const session = event.data.object as Stripe.Checkout.Session;
@@ -84,7 +91,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } catch (error) {
         res.status(400).json({ error: "Webhook error" });
       }
-    },
+    }
   );
 
   // ✅ Apply body parser AFTER webhook
@@ -131,7 +138,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           flipData.outcome,
           flipData.context,
           flipData.headsLabel,
-          flipData.tailsLabel,
+          flipData.tailsLabel
         );
       }
       const newFlip = await storage.addFlipToHistory(flipData);
@@ -141,7 +148,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       if (error instanceof ZodError) {
         const validationError = fromZodError(error);
-        res.status(400).json({ message: "Validation error", errors: validationError.details });
+        res.status(400).json({
+          message: "Validation error",
+          errors: validationError.details,
+        });
       } else {
         res.status(500).json({ message: "Failed to add flip to history" });
       }
@@ -151,13 +161,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/create-checkout-session", async (req, res) => {
     try {
       const { amount, currency, success_url, cancel_url, userId } = req.body;
-      const origin = req.headers.origin || process.env.DEFAULT_ORIGIN || "http://localhost:5000";
+      const origin =
+        req.headers.origin ||
+        process.env.DEFAULT_ORIGIN ||
+        "http://localhost:5000";
       const baseUrl = origin.startsWith("http") ? origin : `https://${origin}`;
-
-      // Log base URL for debugging (remove in production)
-      if (process.env.NODE_ENV !== "production") {
-        console.log("Base URL:", baseUrl);
-      }
 
       const session = await stripe.checkout.sessions.create({
         payment_method_types: ["card"],
@@ -174,7 +182,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ],
         mode: "payment",
         client_reference_id: userId,
-        success_url: success_url || `${baseUrl}/?session_id={CHECKOUT_SESSION_ID}&payment=success`,
+        success_url:
+          success_url ||
+          `${baseUrl}/?session_id={CHECKOUT_SESSION_ID}&payment=success`,
         cancel_url: cancel_url || `${baseUrl}/?payment=cancelled`,
       });
 
@@ -199,10 +209,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { sessionId, userId } = req.body;
       if (!sessionId || !userId) {
-        return res.status(400).json({ message: "Session ID and User ID required" });
+        return res
+          .status(400)
+          .json({ message: "Session ID and User ID required" });
       }
       const session = await stripe.checkout.sessions.retrieve(sessionId);
-      if (session.payment_status === "paid" && session.client_reference_id === userId) {
+      if (
+        session.payment_status === "paid" &&
+        session.client_reference_id === userId
+      ) {
         await storage.setPaymentStatus(userId, true);
         res.json({ success: true, message: "Payment status updated" });
       } else {
@@ -218,7 +233,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.clearFlipHistory();
       historyCache.invalidateAll();
       statsCache.invalidateAll();
-      res.status(200).json({ message: "Flip history and statistics cleared successfully" });
+      res
+        .status(200)
+        .json({ message: "Flip history and statistics cleared successfully" });
     } catch {
       res.status(500).json({ message: "Failed to clear flip history" });
     }
@@ -255,7 +272,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       if (error instanceof ZodError) {
         const validationError = fromZodError(error);
-        res.status(400).json({ message: "Validation error", errors: validationError.details });
+        res.status(400).json({
+          message: "Validation error",
+          errors: validationError.details,
+        });
       } else {
         res.status(500).json({ message: "Failed to update coin settings" });
       }
@@ -299,8 +319,6 @@ if (isMainModule) {
   registerRoutes(app).then((server) => {
     const port = parseInt(process.env.PORT || "5000", 10);
     // ✅ Bind to 0.0.0.0 for Replit/Heroku/etc.
-    server.listen(port, "0.0.0.0", () => {
-      console.log(`Server running on port ${port}`);
-    });
+    server.listen(port, "0.0.0.0", () => {});
   });
 }

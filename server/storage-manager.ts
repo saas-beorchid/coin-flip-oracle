@@ -14,18 +14,19 @@ export let storage: IStorage = useDatabase ? dbStorage : memStorage;
 // Function to fall back to in-memory storage if database connection fails
 export function fallbackToMemoryStorage(): void {
   if (useDatabase) {
-    console.log("Falling back to in-memory storage");
     storage = memStorage;
     useDatabase = false;
   }
 }
 
 // Function to explicitly set which storage to use
-export function setStorageImplementation(implementation: 'memory' | 'database'): void {
-  if (implementation === 'memory') {
+export function setStorageImplementation(
+  implementation: "memory" | "database"
+): void {
+  if (implementation === "memory") {
     storage = memStorage;
     useDatabase = false;
-  } else if (implementation === 'database' && process.env.DATABASE_URL) {
+  } else if (implementation === "database" && process.env.DATABASE_URL) {
     storage = dbStorage;
     useDatabase = true;
   }
