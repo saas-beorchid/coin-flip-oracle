@@ -3,6 +3,7 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { initializeDatabase } from "./lib/database";
+import path from 'path';
 
 const app = express();
 app.use(express.json());
@@ -67,7 +68,13 @@ app.use((req, res, next) => {
 
     // Set up Vite or static file serving
     if (process.env.NODE_ENV === "production") {
-      serveStatic(app);
+      const __dirname = path.resolve();
+      app.use(express.static(path.join(__dirname, "dist/public")));
+    
+      // Catch-all: send index.html for React/Vite routes
+      app.get("*", (_req, res) => {
+        res.sendFile(path.join(__dirname, "dist/public", "index.html"));
+      });
     } else {
       const { setupVite } = await import("./vite.js");
       await setupVite(app, server);
@@ -78,6 +85,8 @@ app.use((req, res, next) => {
 
     server.on("error", (err: any) => {
       if (err.code === "EADDRINUSE") {
+
+        console.log('Port already in use');
         process.exit(1);
       }
     });
@@ -92,6 +101,8 @@ app.use((req, res, next) => {
       },
     );
   } catch (error) {
+    console.error("Server startup failed:", error);
     process.exit(1);
   }
 })();
+
