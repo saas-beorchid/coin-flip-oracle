@@ -6,13 +6,13 @@
   "scripts": {
     "dev": "tsx server/index.ts",
     "build": "vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist",
-    "start": "NODE_ENV=production node dist/index.js",
+    "start": "node dist/index.js",
     "heroku-postbuild": "npm run build",
     "check": "tsc",
     "db:push": "drizzle-kit push"
   },
   "dependencies": {
-    "@clerk/clerk-react": "^5.44.0",
+     "@clerk/clerk-react": "^5.44.0",
     "@hookform/resolvers": "^3.9.1",
     "@jridgewell/trace-mapping": "^0.3.25",
     "@neondatabase/serverless": "^0.10.4",
@@ -109,6 +109,7 @@
     "tsx": "^4.19.1",
     "typescript": "5.6.3",
     "vite": "^5.4.14"
+
   },
   "optionalDependencies": {
     "bufferutil": "^4.0.8"
