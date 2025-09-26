@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "vite": "^5.4.14",
+    "@vitejs/plugin-react": "^4.3.2",
      "@clerk/clerk-react": "^5.44.0",
     "@hookform/resolvers": "^3.9.1",
     "@jridgewell/trace-mapping": "^0.3.25",
@@ -101,7 +102,6 @@
     "@types/react": "^18.3.11",
     "@types/react-dom": "^18.3.1",
     "@types/ws": "^8.5.13",
-    "@vitejs/plugin-react": "^4.3.2",
     "autoprefixer": "^10.4.20",
     "drizzle-kit": "^0.30.6",
     "esbuild": "^0.25.0",
