@@ -1,9 +1,9 @@
-import 'dotenv/config';
+import "dotenv/config";
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
-import { setupVite, serveStatic, log } from "./vite";
+import { serveStatic, log } from "./vite"; // removed setupVite from static import
 import { initializeDatabase } from "./lib/database";
-import path from 'path';
+import path from "path";
 
 const app = express();
 app.use(express.json());
@@ -12,7 +12,7 @@ app.use(express.urlencoded({ extended: false }));
 // Add request logging middleware
 app.use((req, res, next) => {
   const start = Date.now();
-  const path = req.path;
+  const reqPath = req.path; // renamed to avoid shadowing `path` module
   let capturedJsonResponse: Record<string, any> | undefined = undefined;
 
   const originalResJson = res.json;
@@ -23,8 +23,8 @@ app.use((req, res, next) => {
 
   res.on("finish", () => {
     const duration = Date.now() - start;
-    if (path.startsWith("/api")) {
-      let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
+    if (reqPath.startsWith("/api")) {
+      let logLine = `${req.method} ${reqPath} ${res.statusCode} in ${duration}ms`;
       if (capturedJsonResponse) {
         logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
       }
@@ -66,27 +66,28 @@ app.use((req, res, next) => {
       res.status(status).json({ message });
     });
 
+    // Normalize NODE_ENV and choose behavior
+    const isProd = (process.env.NODE_ENV ?? "").toLowerCase() === "production";
+
     // Set up Vite or static file serving
-    if (process.env.NODE_ENV === "production") {
+    if (isProd) {
       const __dirname = path.resolve();
       app.use(express.static(path.join(__dirname, "dist/public")));
-    
+
       // Catch-all: send index.html for React/Vite routes
       app.get("*", (_req, res) => {
         res.sendFile(path.join(__dirname, "dist/public", "index.html"));
       });
     } else {
-      const { setupVite } = await import("./vite.js");
+      const { setupVite } = await import("./vite");
       await setupVite(app, server);
     }
 
-    // Start the server
     const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 5000;
 
     server.on("error", (err: any) => {
       if (err.code === "EADDRINUSE") {
-
-        console.log('Port already in use');
+        console.log("Port already in use");
         process.exit(1);
       }
     });
@@ -97,12 +98,13 @@ app.use((req, res, next) => {
         host: "0.0.0.0",
       },
       () => {
-        // Server started successfully
-      },
+        console.log(
+          `Server listening on port ${port} (NODE_ENV=${process.env.NODE_ENV})`
+        );
+      }
     );
   } catch (error) {
     console.error("Server startup failed:", error);
     process.exit(1);
   }
 })();
-
