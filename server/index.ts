@@ -71,12 +71,10 @@ app.use((req, res, next) => {
 
     // Set up Vite or static file serving
     if (isProd) {
-      const __dirname = path.resolve();
-      app.use(express.static(path.join(__dirname, "dist/public")));
+      app.use(express.static(path.join(process.cwd(), "dist/public")));
 
-      // Catch-all: send index.html for React/Vite routes
-      app.get("*", (_req, res) => {
-        res.sendFile(path.join(__dirname, "dist/public", "index.html"));
+      app.get("*", (req, res) => {
+        res.sendFile(path.join(process.cwd(), "dist/public/index.html"));
       });
     } else {
       const { setupVite } = await import("./vite");
