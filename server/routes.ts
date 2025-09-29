@@ -314,11 +314,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 }
 
 // Start server
-if (isMainModule) {
-  const app = express();
-  registerRoutes(app).then((server) => {
-    const port = parseInt(process.env.PORT || "5000", 10);
-    // ✅ Bind to 0.0.0.0 for Replit/Heroku/etc.
-    server.listen(port, "0.0.0.0", () => {});
-  });
-}
+// if (isMainModule) {
+//   const app = express();
+//   registerRoutes(app).then((server) => {
+//     const port = parseInt(process.env.PORT || "5000", 10);
+//     // ✅ Bind to 0.0.0.0 for Replit/Heroku/etc.
+//     server.listen(port, "0.0.0.0", () => {});
+//   });
+// }

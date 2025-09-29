@@ -1,44 +1,44 @@
-import "dotenv/config";
-import express, { type Request, Response, NextFunction } from "express";
-import { registerRoutes } from "./routes";
-import { serveStatic, log } from "./vite"; // removed setupVite from static import
-import { initializeDatabase } from "./lib/database";
+// ...existing code...
 import path from "path";
+import net from "net";
+import express from "express";
+import { registerRoutes } from "./routes";
+import { initializeDatabase } from "./lib/database";
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 // Add request logging middleware
-app.use((req, res, next) => {
-  const start = Date.now();
-  const reqPath = req.path; // renamed to avoid shadowing `path` module
-  let capturedJsonResponse: Record<string, any> | undefined = undefined;
+// ...existing code...
 
-  const originalResJson = res.json;
-  res.json = function (bodyJson, ...args) {
-    capturedJsonResponse = bodyJson;
-    return originalResJson.apply(res, [bodyJson, ...args]);
-  };
-
-  res.on("finish", () => {
-    const duration = Date.now() - start;
-    if (reqPath.startsWith("/api")) {
-      let logLine = `${req.method} ${reqPath} ${res.statusCode} in ${duration}ms`;
-      if (capturedJsonResponse) {
-        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
+// helper: check if a port is already in use on localhost
+async function isPortInUse(port: number, host = "127.0.0.1"): Promise<boolean> {
+  return new Promise((resolve) => {
+    const socket = new net.Socket();
+    let done = false;
+    socket.setTimeout(1000);
+    socket.once("connect", () => {
+      done = true;
+      socket.destroy();
+      resolve(true);
+    });
+    socket.once("error", () => {
+      if (!done) {
+        done = true;
+        resolve(false);
       }
-
-      if (logLine.length > 80) {
-        logLine = logLine.slice(0, 79) + "…";
+    });
+    socket.once("timeout", () => {
+      if (!done) {
+        done = true;
+        socket.destroy();
+        resolve(false);
       }
-
-      log(logLine);
-    }
+    });
+    socket.connect(port, host);
   });
-
-  next();
-});
+}
 
 (async () => {
   try {
@@ -60,16 +60,10 @@ app.use((req, res, next) => {
     const server = await registerRoutes(app);
 
     // Error handling middleware
-    app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-      const status = err.status || err.statusCode || 500;
-      const message = err.message || "Internal Server Error";
-      res.status(status).json({ message });
-    });
+    // ...existing code...
 
-    // Normalize NODE_ENV and choose behavior
     const isProd = (process.env.NODE_ENV ?? "").toLowerCase() === "production";
 
-    // Set up Vite or static file serving
     if (isProd) {
       app.use(express.static(path.join(process.cwd(), "dist/public")));
 
@@ -83,9 +77,17 @@ app.use((req, res, next) => {
 
     const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 5000;
 
+    // guard: if another process is already listening on the port, fail early with clear message
+    const portUsed = await isPortInUse(port);
+    if (portUsed && !(server as any).listening) {
+      console.error(
+        `Port ${port} is already in use. Abort to avoid EADDRINUSE. ` +
+          `If you're running locally, stop the process using the port or change PORT.`
+      );
+      process.exit(1);
+    }
+
     // Only call listen if the server is not already listening.
-    // Some startup paths (e.g. vite dev server or registerRoutes) may have
-    // already started the underlying http.Server. Guarding avoids EADDRINUSE.
     if (!(server as any).listening) {
       server.listen(
         {
@@ -98,6 +100,12 @@ app.use((req, res, next) => {
           );
         }
       );
+      server.on("error", (err: any) => {
+        if (err.code === "EADDRINUSE") {
+          console.error(`EADDRINUSE: Port ${port} already in use.`);
+          process.exit(1);
+        }
+      });
     } else {
       console.log(
         `Server already listening (NODE_ENV=${process.env.NODE_ENV})`
