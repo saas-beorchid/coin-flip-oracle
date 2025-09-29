@@ -85,24 +85,26 @@ app.use((req, res, next) => {
 
     const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 5000;
 
-    server.on("error", (err: any) => {
-      if (err.code === "EADDRINUSE") {
-        console.log("Port already in use");
-        process.exit(1);
-      }
-    });
-
-    server.listen(
-      {
-        port,
-        host: "0.0.0.0",
-      },
-      () => {
-        console.log(
-          `Server listening on port ${port} (NODE_ENV=${process.env.NODE_ENV})`
-        );
-      }
-    );
+    // Only call listen if the server is not already listening.
+    // Some startup paths (e.g. vite dev server or registerRoutes) may have
+    // already started the underlying http.Server. Guarding avoids EADDRINUSE.
+    if (!(server as any).listening) {
+      server.listen(
+        {
+          port,
+          host: "0.0.0.0",
+        },
+        () => {
+          console.log(
+            `Server listening on port ${port} (NODE_ENV=${process.env.NODE_ENV})`
+          );
+        }
+      );
+    } else {
+      console.log(
+        `Server already listening (NODE_ENV=${process.env.NODE_ENV})`
+      );
+    }
   } catch (error) {
     console.error("Server startup failed:", error);
     process.exit(1);
