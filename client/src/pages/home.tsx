@@ -151,7 +151,7 @@ export default function Home() {
         ? `&context=${encodeURIComponent(decisionContext.trim())}`
         : "";
       const res = await apiRequest("POST", "/api/create-checkout-session", {
-        amount: 599, // $1.00 in cents
+        amount: 5.99, // $1.00 in cents
         currency: "usd",
         success_url: `${window.location.origin}?session_id={CHECKOUT_SESSION_ID}&payment=success${contextParam}`,
         cancel_url: `${window.location.origin}?payment=cancelled`,
